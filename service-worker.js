@@ -44,11 +44,12 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
   void operation.catch(console.error);
 });
 
-chrome.runtime.onInstalled.addListener(async () => {
+chrome.runtime.onInstalled.addListener(async (details) => {
   await chrome.storage.sync.setAccessLevel({ accessLevel: "TRUSTED_CONTEXTS" });
   const stored = await chrome.storage.sync.get(STORAGE_KEY);
   const settings = normaliseSettings(stored[STORAGE_KEY]);
   if (!stored[STORAGE_KEY]) await chrome.storage.sync.set({ [STORAGE_KEY]: settings });
+  if (details.reason === "install") await chrome.runtime.openOptionsPage();
   await autoPip.sync(settings);
 });
 

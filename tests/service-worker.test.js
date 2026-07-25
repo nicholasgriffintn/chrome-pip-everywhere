@@ -126,9 +126,13 @@ test("native Picture-in-Picture closure clears toolbar feedback", async () => {
 test("installation keeps synced settings limited to extension contexts", async () => {
   const worker = createWorkerHarness([]);
 
-  await worker.installedListener();
+  await worker.installedListener({ reason: "install" });
 
   assert.equal(worker.storageAccessLevels.at(-1)?.accessLevel, "TRUSTED_CONTEXTS");
+  assert.equal(worker.optionsPageOpenCount, 1);
+
+  await worker.installedListener({ reason: "update" });
+  assert.equal(worker.optionsPageOpenCount, 1);
 });
 
 test("options can synchronise the automatic Picture-in-Picture adapter", async () => {
@@ -170,6 +174,7 @@ function createWorkerHarness(executionResults, storedSettings) {
   let actionListener;
   let installedListener;
   let messageListener;
+  let optionsPageOpenCount = 0;
   let permissionRemovedListener;
   let executionIndex = 0;
   const context = {
@@ -204,6 +209,9 @@ function createWorkerHarness(executionResults, storedSettings) {
     chrome: {
       runtime: {
         id: "test-extension",
+        async openOptionsPage() {
+          optionsPageOpenCount += 1;
+        },
         onInstalled: {
           addListener(listener) {
             installedListener = listener;
@@ -280,6 +288,9 @@ function createWorkerHarness(executionResults, storedSettings) {
     },
     get messageListener() {
       return messageListener;
+    },
+    get optionsPageOpenCount() {
+      return optionsPageOpenCount;
     },
     get permissionRemovedListener() {
       return permissionRemovedListener;
