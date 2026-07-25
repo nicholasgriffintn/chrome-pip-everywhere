@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PiP Everywhere settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main class="settings-shell">
+    <header class="brand">
+      <img src="icons/icon-48.png" alt="" width="48" height="48">
+      <div>
+        <span>PiP Everywhere</span>
+        <p>Picture-in-Picture, without the hunt.</p>
+      </div>
+    </header>
+
+    <section class="settings-card" aria-labelledby="behaviour-heading">
+      <div class="section-heading">
+        <p>01 / Behaviour</p>
+        <h1 id="behaviour-heading">Make the click yours.</h1>
+      </div>
+
+      <label class="setting">
+        <span>
+          <strong>Start paused or finished videos</strong>
+          <small>Start a ready video before opening it in Picture-in-Picture.</small>
+        </span>
+        <input id="play-paused-videos" type="checkbox">
+        <i aria-hidden="true"></i>
+      </label>
+
+      <label class="setting">
+        <span>
+          <strong>Include site-blocked videos</strong>
+          <small>Ignore a website’s Picture-in-Picture hint when the browser still permits it.</small>
+        </span>
+        <input id="include-site-blocked-videos" type="checkbox">
+        <i aria-hidden="true"></i>
+      </label>
+    </section>
+
+    <section class="shortcut-card" aria-labelledby="shortcut-heading">
+      <div>
+        <p>02 / Shortcut</p>
+        <h2 id="shortcut-heading">Keep your hands on the keys.</h2>
+      </div>
+      <kbd>⌥ P</kbd>
+      <p>Change the shortcut from <code>chrome://extensions/shortcuts</code>.</p>
+    </section>
+
+    <footer>
+      <p><span aria-hidden="true"></span> Settings stay in your browser.</p>
+      <output id="save-status" role="status" aria-live="polite">Saved</output>
+    </footer>
+  </main>
+  <script src="lib/settings.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

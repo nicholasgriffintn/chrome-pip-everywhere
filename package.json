@@ -1,0 +1,10 @@
+{
+  "name": "pip-everywhere-chrome-extension",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "check": "node --check service-worker.js && node --check options.js && node --check lib/settings.js && node --check lib/action-executor.js",
+    "test": "node --test tests/*.test.js",
+    "package": "zip -FS -r pip-everywhere.zip manifest.json options.css options.html options.js service-worker.js lib icons README.md package.json"
+  }
+}
