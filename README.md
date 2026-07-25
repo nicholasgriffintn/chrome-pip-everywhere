@@ -2,30 +2,42 @@
 
 Pop the best video in the active Chrome tab into an always-on-top Picture-in-Picture window.
 
-## Use it
+![A video moving from a browser tab into Picture-in-Picture](promos/marquee-1400x560.png)
+
+## What it does
+
+- Chooses the most relevant playing, audible and visible video in the current tab.
+- Toggles Chrome's native Picture-in-Picture player from the toolbar or `Alt+P`.
+- Can include paused, finished or site-blocked videos.
+- Can automatically open PiP when you leave a playing tab and close it when you return.
+
+## How to use it
 
 1. Play a video.
 2. Click the PiP Everywhere toolbar icon or press `Alt+P`.
 3. Click again to return the video to its tab.
 
-Open the extension options to include paused or finished videos, respect a website’s Picture-in-Picture preference, or open PiP automatically when you leave a playing tab. Automatic PiP requires Chrome 134 or later, optional access to video pages and Chrome’s per-site approval.
+Open the extension options to change video selection or enable automatic PiP. Automatic PiP requires Chrome 134 or later, optional access to video pages and Chrome's per-site approval.
 
-By default, the extension uses `activeTab` access only after you invoke it. Enabling automatic PiP requests optional access to HTTP and HTTPS pages so its isolated page adapter can register Chrome’s Media Session handler. It does not read browsing history, store or transmit page content, send analytics or make network requests.
+## Install from source
 
-## Captions and subtitles
+1. Open `chrome://extensions`.
+2. Enable **Developer mode**.
+3. Select **Load unpacked** and choose this repository.
 
-Standard Chrome Picture-in-Picture contains the selected `<video>` element, not the surrounding page. YouTube renders captions as a separate HTML overlay, so they remain in the tab instead of appearing in the native PiP window.
+## Privacy
 
-Reliable YouTube captions would require a site-specific Document Picture-in-Picture player that moves or recreates YouTube’s video, caption layer and styles. PiP Everywhere does not currently do this because it would couple playback to YouTube’s private page structure.
+By default, PiP Everywhere receives temporary access to the active tab only after you invoke it. Automatic mode requests optional access to HTTP and HTTPS pages so it can detect playing video and register Chrome's media controls.
 
-## Install locally
+The extension stores its three preference switches in `chrome.storage.sync`, which Chrome may sync between browsers signed into the same account. It does not store or transmit page content, read browsing history, send analytics or make network requests.
 
-1. Run `pnpm run package`.
-2. Open `chrome://extensions`.
-3. Enable **Developer mode**.
-4. Choose **Load unpacked** and select this directory.
+## Limitations
 
-## Develop
+- Chrome and individual websites may prevent Picture-in-Picture for some videos.
+- Captions rendered outside the `<video>` element, including YouTube's HTML caption overlay, do not appear in Chrome's native PiP window.
+- Automatic PiP depends on Chrome's version, permission and per-site approval.
+
+## Development
 
 ```sh
 pnpm check
