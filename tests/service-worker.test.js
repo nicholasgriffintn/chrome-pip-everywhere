@@ -34,7 +34,7 @@ test("the toolbar gesture reaches page execution before asynchronous storage", (
       normaliseSettings: (value) => value
     },
     PipEverywhereActionExecutor: {
-      execute: function execute() {}
+      run: function run() {}
     },
     importScripts() {},
     chrome: {
@@ -77,6 +77,25 @@ test("the toolbar gesture reaches page execution before asynchronous storage", (
   actionListener({ id: 43, url: "chrome-search://local-ntp/local-ntp.html" });
 
   assert.equal(scriptCalls.length, 1);
+});
+
+test("only the strongest frame receives the Picture-in-Picture request", async () => {
+  const worker = createWorkerHarness([
+    [{ frameId: 0, result: { status: "entered" } }]
+  ], undefined, [
+    [
+      { frameId: 0, result: { status: "candidate", score: 10 } },
+      { frameId: 7, result: { status: "candidate", score: 50 } }
+    ]
+  ]);
+
+  worker.actionListener({ id: 42, url: "https://example.com/watch" });
+  await settle();
+
+  assert.deepEqual(JSON.parse(JSON.stringify(worker.executionTargets)), [
+    { tabId: 42, allFrames: true },
+    { tabId: 42, frameIds: [7] }
+  ]);
 });
 
 test("stale error timers cannot clear later Picture-in-Picture feedback", async () => {
@@ -165,7 +184,7 @@ test("revoking optional site access disables automatic Picture-in-Picture", asyn
   assert.equal(worker.storageWrites.at(-1).settings.autoPictureInPicture, false);
 });
 
-function createWorkerHarness(executionResults, storedSettings) {
+function createWorkerHarness(executionResults, storedSettings, inspectionResults = []) {
   const source = readFileSync(new URL("../service-worker.js", `file://${__filename}`), "utf8");
   const badgeTexts = [];
   const storageAccessLevels = [];
@@ -177,6 +196,8 @@ function createWorkerHarness(executionResults, storedSettings) {
   let optionsPageOpenCount = 0;
   let permissionRemovedListener;
   let executionIndex = 0;
+  let inspectionIndex = 0;
+  const executionTargets = [];
   const context = {
     URL,
     clearTimeout(id) {
@@ -203,7 +224,7 @@ function createWorkerHarness(executionResults, storedSettings) {
       }
     },
     PipEverywhereActionExecutor: {
-      execute: function execute() {}
+      run: function run() {}
     },
     importScripts() {},
     chrome: {
@@ -263,7 +284,14 @@ function createWorkerHarness(executionResults, storedSettings) {
         async getRegisteredContentScripts() {
           return [];
         },
-        executeScript() {
+        executeScript(details) {
+          executionTargets.push(details.target);
+          if (details.args[0] === "inspect") {
+            return Promise.resolve(
+              inspectionResults[inspectionIndex++]
+              ?? [{ frameId: 0, result: { status: "candidate", score: 1 } }]
+            );
+          }
           return Promise.resolve(executionResults[executionIndex++]);
         },
         async unregisterContentScripts() {}
@@ -297,6 +325,7 @@ function createWorkerHarness(executionResults, storedSettings) {
     },
     storageAccessLevels,
     storageWrites,
+    executionTargets,
     timers
   };
 }

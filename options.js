@@ -1,7 +1,11 @@
 (function initialiseOptions() {
   "use strict";
 
-  const { STORAGE_KEY, normaliseSettings } = PipEverywhereSettings;
+  const {
+    STORAGE_KEY,
+    isAutoPictureInPictureSupported,
+    normaliseSettings
+  } = PipEverywhereSettings;
   const { formatShortcut } = PipEverywhereShortcuts;
   const { AUTO_PIP_ORIGINS } = PipEverywhereAutoPip;
   const playPausedVideos = document.querySelector("#play-paused-videos");
@@ -15,6 +19,7 @@
   loadShortcut().catch(showShortcutError);
 
   async function start() {
+    const autoPipSupported = isAutoPictureInPictureSupported(navigator.userAgent);
     const [stored, hasAutoPipAccess] = await Promise.all([
       chrome.storage.sync.get(STORAGE_KEY),
       chrome.permissions.contains({ origins: AUTO_PIP_ORIGINS })
@@ -23,6 +28,11 @@
     playPausedVideos.checked = settings.playPausedVideos;
     includeSiteBlockedVideos.checked = settings.includeSiteBlockedVideos;
     autoPictureInPicture.checked = settings.autoPictureInPicture && hasAutoPipAccess;
+    autoPictureInPicture.disabled = !autoPipSupported;
+    if (!autoPipSupported) {
+      const setting = autoPictureInPicture.closest?.("label");
+      if (setting) setting.title = "Automatic video Picture-in-Picture requires Chrome 134 or later.";
+    }
     playPausedVideos.addEventListener("change", handleSave);
     includeSiteBlockedVideos.addEventListener("change", handleSave);
     autoPictureInPicture.addEventListener("change", handleAutoPipChange);
@@ -48,6 +58,11 @@
   }
 
   async function handleAutoPipChange() {
+    if (!isAutoPictureInPictureSupported(navigator.userAgent)) {
+      autoPictureInPicture.checked = false;
+      showStatus("Requires Chrome 134+");
+      return;
+    }
     const enabling = autoPictureInPicture.checked;
     autoPictureInPicture.disabled = true;
     try {

@@ -95,21 +95,53 @@ chrome.action.onClicked.addListener((tab) => {
   }
 
   const settings = currentSettings;
-  const execution = chrome.scripting.executeScript({
+  const inspection = chrome.scripting.executeScript({
     target: { tabId: tab.id, allFrames: true },
-    func: PipEverywhereActionExecutor.execute,
-    args: [settings],
+    func: PipEverywhereActionExecutor.run,
+    args: ["inspect", settings],
     injectImmediately: true
   });
 
   void feedback.clear(tab.id, generation);
-  void handleExecution(tab.id, execution, settings, generation);
+  void inspectFramesAndExecute(tab.id, inspection, settings, generation);
 });
 
 async function hydrateSettings() {
   const stored = await chrome.storage.sync.get(STORAGE_KEY);
   currentSettings = normaliseSettings(stored[STORAGE_KEY]);
   await autoPip.sync(currentSettings);
+}
+
+async function inspectFramesAndExecute(tabId, inspection, settings, generation) {
+  try {
+    const results = await inspection;
+    if (!feedback.isCurrent(tabId, generation)) return;
+    const activeFrame = results.find((entry) => entry.result?.status === "active");
+    const winningFrame = activeFrame ?? results
+      .filter((entry) => entry.result?.status === "candidate")
+      .sort((left, right) => right.result.score - left.result.score)[0];
+
+    if (!winningFrame) {
+      await feedback.showError(
+        tabId,
+        settings.playPausedVideos
+          ? "No ready video was found on this page."
+          : "Play a video first, then click PiP Everywhere.",
+        generation
+      );
+      return;
+    }
+
+    const execution = chrome.scripting.executeScript({
+      target: { tabId, frameIds: [winningFrame.frameId] },
+      func: PipEverywhereActionExecutor.run,
+      args: ["execute", settings],
+      injectImmediately: true
+    });
+    await handleExecution(tabId, execution, settings, generation);
+  } catch (error) {
+    await feedback.showError(tabId, readableError(error), generation);
+  }
 }
 
 async function handleExecution(tabId, execution, settings, generation) {

@@ -27,11 +27,7 @@
 
   void loadSettings();
 
-  try {
-    navigator.mediaSession.setActionHandler("enterpictureinpicture", enterPictureInPicture);
-  } catch {
-    // Chrome versions without the media action keep manual Picture-in-Picture available.
-  }
+  updateActionHandler();
 
   function configure(config) {
     if (typeof config?.enabled === "boolean") enabled = config.enabled;
@@ -41,6 +37,18 @@
         includeSiteBlockedVideos: config.settings.includeSiteBlockedVideos !== false,
         autoPictureInPicture: config.settings.autoPictureInPicture === true
       };
+    }
+    updateActionHandler();
+  }
+
+  function updateActionHandler() {
+    try {
+      navigator.mediaSession.setActionHandler(
+        "enterpictureinpicture",
+        enabled ? enterPictureInPicture : null
+      );
+    } catch {
+      // Chrome versions without the media action keep manual Picture-in-Picture available.
     }
   }
 

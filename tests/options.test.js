@@ -35,6 +35,9 @@ test("the options page displays the active shortcut for the current platform", a
   const context = vm.createContext({
     clearTimeout() {},
     console,
+    navigator: {
+      userAgent: "Mozilla/5.0 Chrome/134.0.0.0 Safari/537.36"
+    },
     document: {
       querySelector(selector) {
         return elements.get(selector);

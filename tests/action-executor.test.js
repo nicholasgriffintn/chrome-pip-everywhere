@@ -1,6 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { execute } = require("../lib/action-executor.js");
+const vm = require("node:vm");
+const { execute, inspect, run } = require("../lib/action-executor.js");
 
 function createVideo(overrides = {}) {
   return {
@@ -70,6 +71,38 @@ test("opens the strongest playing video", async () => {
     includeSiteBlockedVideos: true
   }), { status: "entered" });
   assert.equal(requested, "programme");
+});
+
+test("inspection scores a frame without requesting Picture-in-Picture", () => {
+  let requested = false;
+  installPage([createVideo({
+    requestPictureInPicture: async () => { requested = true; }
+  })]);
+
+  const outcome = inspect({});
+
+  assert.equal(outcome.status, "candidate");
+  assert.ok(outcome.score > 0);
+  assert.equal(requested, false);
+});
+
+test("Chrome can inspect and open a video after serialising the toolbar action", async () => {
+  let requested = false;
+  installPage([createVideo({
+    requestPictureInPicture: async () => {
+      requested = true;
+    }
+  })]);
+  const injectedAction = vm.runInNewContext(`(${run.toString()})`, {
+    document: global.document,
+    getComputedStyle: global.getComputedStyle,
+    innerHeight: global.innerHeight,
+    innerWidth: global.innerWidth
+  });
+
+  assert.equal(injectedAction("inspect", {}).status, "candidate");
+  assert.equal((await injectedAction("execute", {})).status, "entered");
+  assert.equal(requested, true);
 });
 
 test("does not open paused video until enabled", async () => {

@@ -130,6 +130,7 @@ test("the page adapter enters Picture-in-Picture only while enabled", async () =
   );
   const messages = [];
   let actionHandler;
+  let registeredActionHandler;
   let configListener;
   let executionCount = 0;
   const context = vm.createContext({
@@ -139,7 +140,10 @@ test("the page adapter enters Picture-in-Picture only while enabled", async () =
     navigator: {
       mediaSession: {
         setActionHandler(action, handler) {
-          if (action === "enterpictureinpicture") actionHandler = handler;
+          if (action === "enterpictureinpicture") {
+            actionHandler = handler;
+            registeredActionHandler ||= handler;
+          }
         }
       }
     },
@@ -184,7 +188,8 @@ test("the page adapter enters Picture-in-Picture only while enabled", async () =
     { type: "AUTO_PIP_CONFIG_CHANGED", enabled: false },
     { id: "test-extension" }
   );
-  await actionHandler({ enterPictureInPictureReason: "contentoccluded" });
+  assert.equal(actionHandler, null);
+  await registeredActionHandler({ enterPictureInPictureReason: "contentoccluded" });
   assert.equal(executionCount, 1);
 });
 

@@ -4,3 +4,4 @@ node_modules/
 website/dist/
 *.tsbuildinfo
 .wrangler
+website/public/release.json

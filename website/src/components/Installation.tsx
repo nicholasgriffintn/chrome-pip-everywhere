@@ -1,4 +1,5 @@
 import { DownloadButton } from "./DownloadButton.tsx";
+import { ReleaseProvenance } from "./ReleaseProvenance.tsx";
 
 const steps = [
   ["Download", "Get the extension archive and unzip it."],
@@ -14,6 +15,7 @@ export function Installation() {
         <h2 id="install-heading">Put any video<br />in its place.</h2>
         <p>Download the ZIP and install it locally. Then play a video and click the icon.</p>
         <DownloadButton />
+        <ReleaseProvenance />
       </div>
       <ol className="install-steps">
         {steps.map(([title, copy], index) => (
