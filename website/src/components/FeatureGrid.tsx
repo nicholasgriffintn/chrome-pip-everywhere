@@ -14,10 +14,10 @@ const features = [
   {
     number: "03",
     title: "Works your way",
-    copy: "Use the toolbar or Option–P. Include paused videos and site-blocked players from settings.",
+    copy: "Use the toolbar or Alt–P (Option–P on Mac). Include paused videos and site-blocked players from settings.",
     mark: "shortcut",
   },
-];
+] as const;
 
 export function FeatureGrid() {
   return (
@@ -39,16 +39,6 @@ export function FeatureGrid() {
           </article>
         ))}
       </div>
-
-      <aside className="privacy-strip" id="privacy">
-        <span className="privacy-pulse" aria-hidden="true" />
-        <div>
-          <p>Private by default</p>
-          <h3>Your video stays between you and your browser.</h3>
-        </div>
-        <p>PiP Everywhere has no analytics, accounts or network requests. It only inspects the active tab when you invoke it.</p>
-      </aside>
     </section>
   );
 }
-

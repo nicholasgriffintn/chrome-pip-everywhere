@@ -9,11 +9,10 @@ export function DownloadButton({ compact = false }: DownloadButtonProps) {
       href="/pip-everywhere.zip"
       download
     >
-      <span>Download for Chrome</span>
+      <span>{compact ? "Download" : "Download ZIP"}</span>
       <svg aria-hidden="true" viewBox="0 0 20 20">
         <path d="M10 3v9m0 0 3.5-3.5M10 12 6.5 8.5M4 15.5h12" />
       </svg>
     </a>
   );
 }
-

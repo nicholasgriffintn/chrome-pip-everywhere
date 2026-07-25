@@ -57,6 +57,7 @@ a {
 .hero,
 .product-section,
 .feature-section,
+.privacy-section,
 .installation,
 .site-footer {
   width: min(1240px, calc(100% - 64px));
@@ -106,8 +107,18 @@ a {
 }
 
 .site-header nav a:hover,
-.text-link:hover {
+.text-link:hover,
+.site-footer nav a:hover {
   color: var(--paper);
+}
+
+.brand:focus-visible,
+.site-header nav a:focus-visible,
+.site-footer nav a:focus-visible,
+.text-link:focus-visible,
+.download-button:focus-visible {
+  outline: 3px solid var(--red-bright);
+  outline-offset: 4px;
 }
 
 .download-button {
@@ -117,8 +128,8 @@ a {
   gap: 24px;
   min-height: 54px;
   padding: 0 20px;
-  border: 1px solid var(--red);
-  background: var(--red);
+  border: 1px solid #d43f2b;
+  background: #d43f2b;
   color: white;
   font-family: var(--mono);
   font-size: 11px;
@@ -130,8 +141,8 @@ a {
 }
 
 .download-button:hover {
-  border-color: var(--red-bright);
-  background: var(--red-bright);
+  border-color: #c83b28;
+  background: #c83b28;
   transform: translateY(-2px);
 }
 
@@ -149,6 +160,12 @@ a {
   min-height: 38px;
   padding-inline: 15px;
   background: transparent;
+}
+
+.download-button--compact:hover {
+  border-color: var(--red-bright);
+  background: var(--red-bright);
+  color: var(--ink);
 }
 
 .download-button--compact svg {
@@ -226,7 +243,7 @@ a {
 
 .hero-note {
   margin: 15px 0 0 10%;
-  color: #77746e;
+  color: var(--muted);
   font-family: var(--mono);
   font-size: 9px;
   letter-spacing: .08em;
@@ -695,20 +712,23 @@ a {
 .feature-mark--shortcut::before {
   position: absolute;
   top: 15px;
-  left: 13px;
+  left: 9px;
   color: var(--paper);
   font-family: var(--mono);
-  font-size: 12px;
-  content: "⌥  P";
+  font-size: 10px;
+  content: "⌥ / ALT P";
 }
 
-.privacy-strip {
+.privacy-section {
+  padding-bottom: 120px;
+}
+
+.privacy-panel {
   display: grid;
-  grid-template-columns: auto 1.3fr 1fr;
+  grid-template-columns: minmax(0, 1.3fr) minmax(280px, .8fr);
   align-items: center;
-  gap: 30px;
-  margin-top: 95px;
-  padding: 38px 42px;
+  gap: 48px;
+  padding: 58px 54px;
   background: var(--paper);
   color: var(--ink);
 }
@@ -721,29 +741,48 @@ a {
   box-shadow: 0 0 0 9px rgb(83 163 127 / 12%);
 }
 
-.privacy-strip div p {
-  margin: 0 0 8px;
-  color: #77736b;
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: .1em;
-  text-transform: uppercase;
+.privacy-copy .section-number {
+  color: #69665f;
 }
 
-.privacy-strip h3 {
-  max-width: 520px;
-  margin: 0;
+.privacy-copy h2 {
+  margin: 20px 0 24px;
   font-family: var(--serif);
-  font-size: 32px;
+  font-size: clamp(58px, 6.5vw, 94px);
   font-weight: 400;
+  line-height: .82;
   letter-spacing: -.03em;
 }
 
-.privacy-strip > p {
+.privacy-copy > p:last-child {
+  max-width: 560px;
   margin: 0;
   color: #69665f;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.7;
+}
+
+.privacy-points {
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid #c9c2b5;
+  list-style: none;
+}
+
+.privacy-points li {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 12px;
+  padding: 17px 0;
+  border-bottom: 1px solid #c9c2b5;
+  color: #45423d;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.privacy-points span {
+  color: #276c51;
+  font-weight: 600;
 }
 
 .installation {
@@ -822,6 +861,21 @@ a {
   justify-self: end;
 }
 
+.site-footer nav {
+  display: flex;
+  gap: 24px;
+}
+
+.site-footer nav a {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .08em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color 150ms ease;
+}
+
 @keyframes pulse {
   50% {
     box-shadow: 0 0 0 9px rgb(228 71 47 / 4%);
@@ -850,6 +904,7 @@ a {
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
   }
 }
 
@@ -858,6 +913,7 @@ a {
   .hero,
   .product-section,
   .feature-section,
+  .privacy-section,
   .installation,
   .site-footer {
     width: min(100% - 36px, 1240px);
@@ -943,11 +999,11 @@ a {
     margin: 0;
   }
 
-  .privacy-strip {
+  .privacy-panel {
     grid-template-columns: auto 1fr;
   }
 
-  .privacy-strip > p {
+  .privacy-points {
     grid-column: 2;
   }
 
@@ -1095,14 +1151,26 @@ a {
     transform-origin: left center;
   }
 
-  .privacy-strip {
-    gap: 20px;
-    margin-top: 60px;
-    padding: 28px 24px;
+  .privacy-section {
+    padding-bottom: 90px;
   }
 
-  .privacy-strip h3 {
-    font-size: 26px;
+  .privacy-panel {
+    grid-template-columns: 1fr;
+    gap: 30px;
+    padding: 38px 28px;
+  }
+
+  .privacy-pulse {
+    display: none;
+  }
+
+  .privacy-copy h2 {
+    font-size: 56px;
+  }
+
+  .privacy-points {
+    grid-column: auto;
   }
 
   .installation {
@@ -1114,6 +1182,14 @@ a {
   }
 
   .site-footer > p:first-of-type {
+    display: none;
+  }
+
+  .site-footer nav {
+    gap: 18px;
+  }
+
+  .site-footer nav a:first-child {
     display: none;
   }
 }

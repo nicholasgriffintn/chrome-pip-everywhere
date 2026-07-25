@@ -2,13 +2,13 @@ import { DownloadButton } from "./DownloadButton.tsx";
 
 export function Hero() {
   return (
-    <section className="hero">
+    <section className="hero" aria-labelledby="hero-heading">
       <div className="hero-copy">
         <p className="eyebrow">
           <span aria-hidden="true" />
           One click Picture-in-Picture
         </p>
-        <h1>
+        <h1 id="hero-heading">
           Your video.
           <em>Above everything.</em>
         </h1>
@@ -30,4 +30,3 @@ export function Hero() {
     </section>
   );
 }
-

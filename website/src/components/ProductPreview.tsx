@@ -1,7 +1,7 @@
 export function ProductPreview() {
   return (
     <section className="product-section" id="how-it-works" aria-labelledby="preview-heading">
-      <div className="product-stage">
+      <div className="product-stage" aria-hidden="true">
         <div className="browser-window">
           <div className="browser-bar">
             <span className="traffic-lights"><i /><i /><i /></span>
@@ -55,4 +55,3 @@ export function ProductPreview() {
     </section>
   );
 }
-

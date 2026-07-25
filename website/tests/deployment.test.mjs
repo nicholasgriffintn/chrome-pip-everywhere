@@ -18,10 +18,13 @@ test("the production build contains the landing page and installable extension",
   });
 
   assert.match(html, /PiP Everywhere — Keep your video above everything/);
+  assert.match(html, /rel="canonical" href="https:\/\/pip-everywhere[.]pashi[.]app\/"/);
+  assert.match(html, /rel="icon" href="\/icon[.]svg"/);
   assert.match(html, /src="[/]assets[/]index-[^"]+[.]js"/);
   assert.ok((await stat(archive)).size > 0);
-  assert.match(scripts.join("\n"), /Your video stays between you and your browser/);
+  assert.match(scripts.join("\n"), /No browsing history permission/);
   assert.match(scripts.join("\n"), /Keep the picture/);
+  assert.match(scripts.join("\n"), /Download ZIP/);
   assert.match(archiveContents, /^manifest[.]json$/m);
   assert.match(archiveContents, /^lib[/]action-executor[.]js$/m);
   assert.doesNotMatch(archiveContents, /^website[/]/m);
