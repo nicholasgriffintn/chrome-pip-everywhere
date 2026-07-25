@@ -1,8 +1,10 @@
-importScripts("lib/settings.js", "lib/action-executor.js");
+importScripts("lib/settings.js", "lib/action-executor.js", "lib/action-feedback.js");
 
 const { DEFAULT_SETTINGS, STORAGE_KEY, normaliseSettings } = PipEverywhereSettings;
-const BADGE_RESET_DELAY = 3000;
-const blockedProtocols = new Set(["chrome:", "chrome-extension:", "edge:", "about:", "view-source:"]);
+const supportedProtocols = new Set(["file:", "http:", "https:"]);
+const feedback = PipEverywhereActionFeedback.createActionFeedback({
+  action: chrome.action
+});
 let currentSettings = DEFAULT_SETTINGS;
 
 hydrateSettings().catch(console.error);
@@ -13,27 +15,45 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 });
 
 chrome.runtime.onInstalled.addListener(async () => {
+  await chrome.storage.sync.setAccessLevel({ accessLevel: "TRUSTED_CONTEXTS" });
   const stored = await chrome.storage.sync.get(STORAGE_KEY);
   if (!stored[STORAGE_KEY]) {
     await chrome.storage.sync.set({ [STORAGE_KEY]: DEFAULT_SETTINGS });
   }
 });
 
-chrome.action.onClicked.addListener((tab) => {
-  if (!tab.id || !isSupportedUrl(tab.url)) {
-    void showError(tab.id, "Open a webpage with a video first.");
+chrome.runtime.onMessage.addListener((message, sender) => {
+  const tabId = sender.tab?.id;
+  if (
+    sender.id !== chrome.runtime.id ||
+    message?.type !== "PIP_STATUS_CHANGED" ||
+    message.active !== false ||
+    tabId == null
+  ) {
     return;
   }
 
+  const generation = feedback.begin(tabId);
+  void feedback.clear(tabId, generation);
+});
+
+chrome.action.onClicked.addListener((tab) => {
+  const generation = feedback.begin(tab.id);
+  if (tab.id == null || !isSupportedUrl(tab.url)) {
+    void feedback.showError(tab.id, "Open a webpage with a video first.", generation);
+    return;
+  }
+
+  const settings = currentSettings;
   const execution = chrome.scripting.executeScript({
     target: { tabId: tab.id, allFrames: true },
     func: PipEverywhereActionExecutor.execute,
-    args: [currentSettings],
+    args: [settings],
     injectImmediately: true
   });
 
-  clearFeedback(tab.id);
-  void handleExecution(tab.id, execution);
+  void feedback.clear(tab.id, generation);
+  void handleExecution(tab.id, execution, settings, generation);
 });
 
 async function hydrateSettings() {
@@ -41,47 +61,44 @@ async function hydrateSettings() {
   currentSettings = normaliseSettings(stored[STORAGE_KEY]);
 }
 
-async function handleExecution(tabId, execution) {
+async function handleExecution(tabId, execution, settings, generation) {
   try {
     const results = await execution;
+    if (!feedback.isCurrent(tabId, generation)) return;
     const outcomes = results.map((entry) => entry.result).filter(Boolean);
 
     if (outcomes.some((outcome) => outcome.status === "entered")) {
-      await chrome.action.setTitle({
-        tabId,
-        title: "Video is playing in Picture-in-Picture"
-      });
-      await chrome.action.setBadgeBackgroundColor({ tabId, color: "#e4472f" });
-      await chrome.action.setBadgeText({ tabId, text: "PIP" });
+      await feedback.showActive(tabId, generation);
       return;
     }
 
     if (outcomes.some((outcome) => outcome.status === "exited")) {
-      clearFeedback(tabId);
+      await feedback.clear(tabId, generation);
       return;
     }
 
     const failure = outcomes.find((outcome) => outcome.status === "error");
     if (failure) {
-      await showError(tabId, readableError(failure));
+      await feedback.showError(tabId, readableError(failure), generation);
       return;
     }
 
-    await showError(
+    await feedback.showError(
       tabId,
-      currentSettings.playPausedVideos
+      settings.playPausedVideos
         ? "No ready video was found on this page."
-        : "Play a video first, then click PiP Everywhere."
+        : "Play a video first, then click PiP Everywhere.",
+      generation
     );
   } catch (error) {
-    await showError(tabId, readableError(error));
+    await feedback.showError(tabId, readableError(error), generation);
   }
 }
 
 function isSupportedUrl(url) {
   if (!url) return false;
   try {
-    return !blockedProtocols.has(new URL(url).protocol);
+    return supportedProtocols.has(new URL(url).protocol);
   } catch {
     return false;
   }
@@ -98,17 +115,3 @@ function readableError(error) {
   }
   return message || "Picture-in-Picture could not be opened.";
 }
-
-function clearFeedback(tabId) {
-  chrome.action.setBadgeText({ tabId, text: "" });
-  chrome.action.setTitle({ tabId, title: "Pop out this video" });
-}
-
-async function showError(tabId, message) {
-  if (!tabId) return;
-  await chrome.action.setBadgeBackgroundColor({ tabId, color: "#6f737d" });
-  await chrome.action.setBadgeText({ tabId, text: "!" });
-  await chrome.action.setTitle({ tabId, title: message });
-  setTimeout(() => clearFeedback(tabId), BADGE_RESET_DELAY);
-}
-

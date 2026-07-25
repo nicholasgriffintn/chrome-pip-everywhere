@@ -50,6 +50,7 @@ test.afterEach(() => {
   delete global.innerWidth;
   delete global.innerHeight;
   delete global.getComputedStyle;
+  delete global.chrome;
 });
 
 test("opens the strongest playing video", async () => {
@@ -90,6 +91,113 @@ test("does not open paused video until enabled", async () => {
     includeSiteBlockedVideos: true
   }), { status: "entered" });
   assert.equal(playCount, 1);
+});
+
+test("requests Picture-in-Picture before paused playback consumes activation", async () => {
+  let activation = true;
+  let requestedWithActivation = false;
+  const paused = createVideo({
+    paused: true,
+    play: async () => {
+      await Promise.resolve();
+      activation = false;
+    },
+    requestPictureInPicture: async () => {
+      requestedWithActivation = activation;
+    }
+  });
+  installPage([paused]);
+
+  assert.deepEqual(await execute({
+    playPausedVideos: true,
+    includeSiteBlockedVideos: true
+  }), { status: "entered" });
+  assert.equal(requestedWithActivation, true);
+});
+
+test("opens paused Picture-in-Picture when playback remains blocked", async () => {
+  let requested = false;
+  const paused = createVideo({
+    paused: true,
+    play: async () => {
+      throw new DOMException("Playback blocked", "NotAllowedError");
+    },
+    requestPictureInPicture: async () => {
+      requested = true;
+    }
+  });
+  installPage([paused]);
+
+  assert.deepEqual(await execute({
+    playPausedVideos: true,
+    includeSiteBlockedVideos: true
+  }), { status: "entered" });
+  assert.equal(requested, true);
+});
+
+test("does not wait for paused playback before reporting Picture-in-Picture", async () => {
+  const paused = createVideo({
+    paused: true,
+    play: () => new Promise(() => {})
+  });
+  installPage([paused]);
+
+  assert.deepEqual(await execute({
+    playPausedVideos: true,
+    includeSiteBlockedVideos: true
+  }), { status: "entered" });
+});
+
+test("notifies the extension when the native Picture-in-Picture window closes", async () => {
+  let leaveListener;
+  let leaveOptions;
+  const messages = [];
+  const video = createVideo({
+    addEventListener(type, listener, options) {
+      if (type === "leavepictureinpicture") {
+        leaveListener = listener;
+        leaveOptions = options;
+      }
+    }
+  });
+  global.chrome = {
+    runtime: {
+      async sendMessage(message) {
+        messages.push(message);
+      }
+    }
+  };
+  installPage([video]);
+
+  assert.deepEqual(await execute({}), { status: "entered" });
+  assert.equal(typeof leaveListener, "function");
+  assert.notEqual(leaveOptions?.once, true);
+
+  leaveListener({ isTrusted: false });
+  assert.deepEqual(messages, []);
+
+  leaveListener({ isTrusted: true });
+  await Promise.resolve();
+
+  assert.deepEqual(messages, [{ type: "PIP_STATUS_CHANGED", active: false }]);
+});
+
+test("restores a site's Picture-in-Picture preference after the window closes", async () => {
+  let leaveListener;
+  const video = createVideo({
+    disablePictureInPicture: true,
+    addEventListener(type, listener) {
+      if (type === "leavepictureinpicture") leaveListener = listener;
+    }
+  });
+  installPage([video]);
+
+  assert.deepEqual(await execute({ includeSiteBlockedVideos: true }), { status: "entered" });
+  assert.equal(video.disablePictureInPicture, false);
+
+  leaveListener();
+
+  assert.equal(video.disablePictureInPicture, true);
 });
 
 test("exits an active Picture-in-Picture video", async () => {

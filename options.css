@@ -194,6 +194,11 @@ kbd {
   font-size: 14px;
 }
 
+kbd.is-unset {
+  color: var(--muted);
+  font-size: 11px;
+}
+
 .shortcut-card > p {
   grid-column: 1 / -1;
   margin: 0;
