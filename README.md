@@ -11,6 +11,8 @@ Pop the best video in the active Chrome tab into an always-on-top Picture-in-Pic
 - Can include paused, finished or site-blocked videos.
 - Can automatically open PiP when you leave a playing tab and close it when you return.
 
+![A screenshot of the PIP in action](screenshots/screenshot.png)
+
 ## How to use it
 
 1. Play a video.
