@@ -14,7 +14,7 @@ const features = [
   {
     number: "03",
     title: "Works your way",
-    copy: "Use the toolbar or Alt–P (Option–P on Mac). Include paused videos and site-blocked players from settings.",
+    copy: "Use the toolbar or Alt–P (Option–P on Mac). Optionally open PiP when you leave a playing tab and close it when you return.",
     mark: "shortcut",
   },
 ] as const;

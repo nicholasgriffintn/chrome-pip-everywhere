@@ -9,6 +9,10 @@
     "scripting",
     "storage"
   ],
+  "optional_host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
   "background": {
     "service_worker": "service-worker.js"
   },
@@ -38,4 +42,3 @@
     "128": "icons/icon-128.png"
   }
 }
-

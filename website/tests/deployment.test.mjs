@@ -29,5 +29,7 @@ test("the production build contains the landing page and installable extension",
   assert.match(archiveContents, /^lib[/]action-executor[.]js$/m);
   assert.match(archiveContents, /^lib[/]action-feedback[.]js$/m);
   assert.match(archiveContents, /^lib[/]shortcuts[.]js$/m);
+  assert.match(archiveContents, /^lib[/]auto-pip[.]js$/m);
+  assert.match(archiveContents, /^content[/]auto-pip[.]js$/m);
   assert.doesNotMatch(archiveContents, /^website[/]/m);
 });

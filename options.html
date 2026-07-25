@@ -39,6 +39,15 @@
         <input id="include-site-blocked-videos" type="checkbox">
         <i aria-hidden="true"></i>
       </label>
+
+      <label class="setting">
+        <span>
+          <strong>Open when switching tabs</strong>
+          <small>On Chrome 134+, open playing video automatically, then close it when you return. Chrome may ask for access to video pages and approve each site separately.</small>
+        </span>
+        <input id="auto-picture-in-picture" type="checkbox">
+        <i aria-hidden="true"></i>
+      </label>
     </section>
 
     <section class="shortcut-card" aria-labelledby="shortcut-heading">
@@ -57,6 +66,7 @@
   </main>
   <script src="lib/settings.js"></script>
   <script src="lib/shortcuts.js"></script>
+  <script src="lib/auto-pip.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

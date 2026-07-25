@@ -1,40 +1,89 @@
-importScripts("lib/settings.js", "lib/action-executor.js", "lib/action-feedback.js");
+importScripts(
+  "lib/settings.js",
+  "lib/action-executor.js",
+  "lib/action-feedback.js",
+  "lib/auto-pip.js"
+);
 
 const { DEFAULT_SETTINGS, STORAGE_KEY, normaliseSettings } = PipEverywhereSettings;
 const supportedProtocols = new Set(["file:", "http:", "https:"]);
 const feedback = PipEverywhereActionFeedback.createActionFeedback({
   action: chrome.action
 });
+const autoPip = PipEverywhereAutoPip.createAutoPipRegistration({
+  permissions: chrome.permissions,
+  scripting: chrome.scripting,
+  tabs: chrome.tabs
+});
 let currentSettings = DEFAULT_SETTINGS;
 
-hydrateSettings().catch(console.error);
+const settingsReady = hydrateSettings();
+settingsReady.catch(console.error);
+
+chrome.permissions.onRemoved.addListener((removed) => {
+  const autoPipAccessRemoved = removed.origins?.some((origin) =>
+    PipEverywhereAutoPip.AUTO_PIP_ORIGINS.includes(origin)
+  );
+  if (!autoPipAccessRemoved || !currentSettings.autoPictureInPicture) return;
+
+  currentSettings = normaliseSettings({
+    ...currentSettings,
+    autoPictureInPicture: false
+  });
+  void chrome.storage.sync.set({ [STORAGE_KEY]: currentSettings });
+  void autoPip.sync(currentSettings).catch(console.error);
+});
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName !== "sync" || !changes[STORAGE_KEY]) return;
+  const previousSettings = currentSettings;
   currentSettings = normaliseSettings(changes[STORAGE_KEY].newValue);
+  const operation = previousSettings.autoPictureInPicture === currentSettings.autoPictureInPicture
+    ? autoPip.update(currentSettings)
+    : autoPip.sync(currentSettings);
+  void operation.catch(console.error);
 });
 
 chrome.runtime.onInstalled.addListener(async () => {
   await chrome.storage.sync.setAccessLevel({ accessLevel: "TRUSTED_CONTEXTS" });
   const stored = await chrome.storage.sync.get(STORAGE_KEY);
-  if (!stored[STORAGE_KEY]) {
-    await chrome.storage.sync.set({ [STORAGE_KEY]: DEFAULT_SETTINGS });
-  }
+  const settings = normaliseSettings(stored[STORAGE_KEY]);
+  if (!stored[STORAGE_KEY]) await chrome.storage.sync.set({ [STORAGE_KEY]: settings });
+  await autoPip.sync(settings);
 });
 
-chrome.runtime.onMessage.addListener((message, sender) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (sender.id !== chrome.runtime.id) return;
+
   const tabId = sender.tab?.id;
-  if (
-    sender.id !== chrome.runtime.id ||
-    message?.type !== "PIP_STATUS_CHANGED" ||
-    message.active !== false ||
-    tabId == null
-  ) {
+  if (message?.type === "GET_AUTO_PIP_SETTINGS" && tabId != null) {
+    void settingsReady
+      .then(() => sendResponse(currentSettings))
+      .catch(() => sendResponse(DEFAULT_SETTINGS));
+    return true;
+  }
+
+  if (message?.type === "CONFIGURE_AUTO_PIP" && typeof message.enabled === "boolean") {
+    const settings = {
+      ...currentSettings,
+      autoPictureInPicture: message.enabled
+    };
+    void autoPip.sync(settings)
+      .then((result) => sendResponse({ ok: true, ...result }))
+      .catch((error) => sendResponse({
+        ok: false,
+        message: error?.message || String(error)
+      }));
+    return true;
+  }
+
+  if (message?.type !== "PIP_STATUS_CHANGED" || typeof message.active !== "boolean" || tabId == null) {
     return;
   }
 
   const generation = feedback.begin(tabId);
-  void feedback.clear(tabId, generation);
+  if (message.active) void feedback.showActive(tabId, generation);
+  else void feedback.clear(tabId, generation);
 });
 
 chrome.action.onClicked.addListener((tab) => {
@@ -59,6 +108,7 @@ chrome.action.onClicked.addListener((tab) => {
 async function hydrateSettings() {
   const stored = await chrome.storage.sync.get(STORAGE_KEY);
   currentSettings = normaliseSettings(stored[STORAGE_KEY]);
+  await autoPip.sync(currentSettings);
 }
 
 async function handleExecution(tabId, execution, settings, generation) {

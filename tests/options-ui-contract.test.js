@@ -16,3 +16,8 @@ test("the options background fills the viewport without tiling", () => {
 test("the shortcut display can reflect the active Chrome command", () => {
   assert.match(html, /<kbd id="active-shortcut">/);
 });
+
+test("automatic Picture-in-Picture is an explicit option", () => {
+  assert.match(html, /<input id="auto-picture-in-picture" type="checkbox">/);
+  assert.match(html, /Chrome may ask for access to video pages/);
+});

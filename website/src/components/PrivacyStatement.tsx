@@ -2,6 +2,7 @@ const privacyPoints = [
   "No analytics, telemetry or advertising",
   "No browsing history permission",
   "No page content stored or transmitted",
+  "Automatic mode requests optional site access",
 ] as const;
 
 export function PrivacyStatement() {
@@ -21,7 +22,8 @@ export function PrivacyStatement() {
           </h2>
           <p>
             PiP Everywhere receives temporary access to the active tab only
-            when you invoke it. Video selection happens inside that tab.
+            when you invoke it. Automatic mode is opt-in and requests access
+            only so its isolated adapter can recognise playing video.
           </p>
         </div>
         <ul className="privacy-points">

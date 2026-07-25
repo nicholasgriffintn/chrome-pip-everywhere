@@ -7,6 +7,10 @@ const feedbackSource = readFileSync(
   new URL("../lib/action-feedback.js", `file://${__filename}`),
   "utf8"
 );
+const autoPipSource = readFileSync(
+  new URL("../lib/auto-pip.js", `file://${__filename}`),
+  "utf8"
+);
 
 test("the toolbar gesture reaches page execution before asynchronous storage", () => {
   const source = readFileSync(new URL("../service-worker.js", `file://${__filename}`), "utf8");
@@ -23,7 +27,8 @@ test("the toolbar gesture reaches page execution before asynchronous storage", (
     PipEverywhereSettings: {
       DEFAULT_SETTINGS: {
         playPausedVideos: false,
-        includeSiteBlockedVideos: true
+        includeSiteBlockedVideos: true,
+        autoPictureInPicture: false
       },
       STORAGE_KEY: "settings",
       normaliseSettings: (value) => value
@@ -33,6 +38,9 @@ test("the toolbar gesture reaches page execution before asynchronous storage", (
     },
     importScripts() {},
     chrome: {
+      permissions: {
+        onRemoved: { addListener() {} }
+      },
       runtime: {
         id: "test-extension",
         onInstalled: { addListener() {} },
@@ -123,14 +131,46 @@ test("installation keeps synced settings limited to extension contexts", async (
   assert.equal(worker.storageAccessLevels.at(-1)?.accessLevel, "TRUSTED_CONTEXTS");
 });
 
-function createWorkerHarness(executionResults) {
+test("options can synchronise the automatic Picture-in-Picture adapter", async () => {
+  const worker = createWorkerHarness([]);
+  const responses = [];
+
+  const keepsChannelOpen = worker.messageListener(
+    { type: "CONFIGURE_AUTO_PIP", enabled: false },
+    { id: "test-extension" },
+    (response) => responses.push(response)
+  );
+  await settle();
+
+  assert.equal(keepsChannelOpen, true);
+  assert.equal(responses.at(-1).ok, true);
+  assert.equal(responses.at(-1).active, false);
+});
+
+test("revoking optional site access disables automatic Picture-in-Picture", async () => {
+  const worker = createWorkerHarness([], {
+    playPausedVideos: false,
+    includeSiteBlockedVideos: true,
+    autoPictureInPicture: true
+  });
+  await settle();
+
+  worker.permissionRemovedListener({ origins: ["https://*/*"] });
+  await settle();
+
+  assert.equal(worker.storageWrites.at(-1).settings.autoPictureInPicture, false);
+});
+
+function createWorkerHarness(executionResults, storedSettings) {
   const source = readFileSync(new URL("../service-worker.js", `file://${__filename}`), "utf8");
   const badgeTexts = [];
   const storageAccessLevels = [];
+  const storageWrites = [];
   const timers = [];
   let actionListener;
   let installedListener;
   let messageListener;
+  let permissionRemovedListener;
   let executionIndex = 0;
   const context = {
     URL,
@@ -147,12 +187,14 @@ function createWorkerHarness(executionResults) {
     PipEverywhereSettings: {
       DEFAULT_SETTINGS: {
         playPausedVideos: false,
-        includeSiteBlockedVideos: true
+        includeSiteBlockedVideos: true,
+        autoPictureInPicture: false
       },
       STORAGE_KEY: "settings",
       normaliseSettings: (value) => value || {
         playPausedVideos: false,
-        includeSiteBlockedVideos: true
+        includeSiteBlockedVideos: true,
+        autoPictureInPicture: false
       }
     },
     PipEverywhereActionExecutor: {
@@ -173,12 +215,24 @@ function createWorkerHarness(executionResults) {
           }
         }
       },
+      permissions: {
+        onRemoved: {
+          addListener(listener) {
+            permissionRemovedListener = listener;
+          }
+        },
+        async contains() {
+          return false;
+        }
+      },
       storage: {
         sync: {
           async get() {
-            return {};
+            return storedSettings ? { settings: storedSettings } : {};
           },
-          async set() {},
+          async set(value) {
+            storageWrites.push(value);
+          },
           async setAccessLevel(details) {
             storageAccessLevels.push(details);
           }
@@ -198,8 +252,17 @@ function createWorkerHarness(executionResults) {
         async setTitle() {}
       },
       scripting: {
+        async getRegisteredContentScripts() {
+          return [];
+        },
         executeScript() {
           return Promise.resolve(executionResults[executionIndex++]);
+        },
+        async unregisterContentScripts() {}
+      },
+      tabs: {
+        async query() {
+          return [];
         }
       }
     }
@@ -218,7 +281,11 @@ function createWorkerHarness(executionResults) {
     get messageListener() {
       return messageListener;
     },
+    get permissionRemovedListener() {
+      return permissionRemovedListener;
+    },
     storageAccessLevels,
+    storageWrites,
     timers
   };
 }
@@ -226,6 +293,7 @@ function createWorkerHarness(executionResults) {
 function evaluateWorker(source, context) {
   const vmContext = vm.createContext(context);
   vm.runInContext(feedbackSource, vmContext);
+  vm.runInContext(autoPipSource, vmContext);
   vm.runInContext(source, vmContext);
 }
 
