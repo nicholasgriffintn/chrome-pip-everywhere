@@ -754,12 +754,22 @@ a {
   letter-spacing: -.03em;
 }
 
-.privacy-copy > p:last-child {
+.privacy-policy {
+  display: grid;
+  gap: 12px;
+}
+
+.privacy-policy p {
   max-width: 560px;
   margin: 0;
   color: #69665f;
   font-size: 13px;
   line-height: 1.7;
+}
+
+.privacy-policy a {
+  color: #276c51;
+  text-underline-offset: 3px;
 }
 
 .privacy-points {

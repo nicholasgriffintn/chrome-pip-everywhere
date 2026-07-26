@@ -29,9 +29,13 @@ Open the extension options to change video selection or enable automatic PiP. Au
 
 ## Privacy
 
-By default, PiP Everywhere receives temporary access to the active tab only after you invoke it. Automatic mode requests optional access to HTTP and HTTPS pages so it can detect playing video and register Chrome's media controls.
+By default, PiP Everywhere receives temporary access to the active tab only after it is invoked. It examines video elements, visibility and playback state locally only to choose and control a Picture-in-Picture video. It does not retain video, page content or playback history.
 
-The extension stores its three preference switches in `chrome.storage.sync`, which Chrome may sync between browsers signed into the same account. It does not store or transmit page content, read browsing history, send analytics or make network requests.
+Automatic mode is opt-in and requests optional access to HTTP and HTTPS pages so the same local adapter can respond to Chrome's media controls. Three preference switches remain in `chrome.storage.sync` until changed, reset or the extension is uninstalled. Chrome may sync those settings through the user's signed-in browser profile under Google's privacy terms.
+
+PiP Everywhere does not send page or video data to the developer or another party, read browsing history, send analytics or make network requests. It has no accounts, advertising, remote scripts or external services.
+
+Information received through Chrome APIs is used only for PiP Everywhere's stated purpose and in accordance with the Chrome Web Store User Data Policy, including the Limited Use requirements. The privacy policy was last updated on 26 July 2026. [Contact the developer](https://nicholasgriffin.dev/contact) with privacy questions.
 
 ## Limitations
 
