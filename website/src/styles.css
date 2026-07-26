@@ -116,9 +116,22 @@ a {
 .site-header nav a:focus-visible,
 .site-footer nav a:focus-visible,
 .text-link:focus-visible,
-.download-button:focus-visible {
+.download-button:focus-visible,
+.download-menu summary:focus-visible,
+.download-menu-panel a:focus-visible {
   outline: 3px solid var(--red-bright);
   outline-offset: 4px;
+}
+
+.download-control {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  transition: transform 150ms ease;
+}
+
+.download-control:hover {
+  transform: translateY(-2px);
 }
 
 .download-button {
@@ -137,16 +150,16 @@ a {
   letter-spacing: .055em;
   text-decoration: none;
   text-transform: uppercase;
-  transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
+  transition: background 150ms ease, border-color 150ms ease;
 }
 
 .download-button:hover {
   border-color: #c83b28;
   background: #c83b28;
-  transform: translateY(-2px);
 }
 
-.download-button svg {
+.download-button svg,
+.download-menu svg {
   width: 18px;
   fill: none;
   stroke: currentColor;
@@ -155,17 +168,108 @@ a {
   stroke-width: 1.5;
 }
 
-.download-button--compact {
+.download-menu {
+  display: flex;
+}
+
+.download-menu summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  min-height: 54px;
+  border: 1px solid #d43f2b;
+  border-left-color: rgb(255 255 255 / 24%);
+  background: #d43f2b;
+  color: white;
+  cursor: pointer;
+  list-style: none;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.download-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.download-menu summary:hover {
+  border-color: #c83b28;
+  border-left-color: rgb(255 255 255 / 24%);
+  background: #c83b28;
+}
+
+.download-menu summary svg {
+  width: 16px;
+  transition: transform 150ms ease;
+}
+
+.download-menu[open] summary svg {
+  transform: rotate(180deg);
+}
+
+.download-menu-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 5;
+  width: 210px;
+  padding: 6px;
+  border: 1px solid #c9c2b5;
+  background: var(--paper);
+  box-shadow: 0 18px 45px rgb(0 0 0 / 35%);
+  color: var(--ink);
+}
+
+.download-menu-panel a {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 13px 14px;
+  text-decoration: none;
+  transition: background 150ms ease;
+}
+
+.download-menu-panel a:hover {
+  background: #ded7ca;
+}
+
+.download-menu-panel span {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+
+.download-menu-panel small {
+  color: #625e57;
+  font-size: 11px;
+}
+
+.download-control--compact {
   justify-self: end;
+}
+
+.download-button--compact {
   min-height: 38px;
   padding-inline: 15px;
   background: transparent;
 }
 
-.download-button--compact:hover {
+.download-control--compact .download-menu summary {
+  width: 34px;
+  min-height: 38px;
+  background: transparent;
+}
+
+.download-control--compact:hover .download-button,
+.download-control--compact:hover .download-menu summary {
   border-color: var(--red-bright);
   background: var(--red-bright);
   color: var(--ink);
+}
+
+.download-control--compact:hover .download-menu summary {
+  border-left-color: rgb(21 21 21 / 24%);
 }
 
 .download-button--compact svg {
@@ -833,7 +937,10 @@ a {
 .install-steps li > span {
   color: var(--red-bright);
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: .04em;
+  line-height: 1.4;
 }
 
 .install-steps h3 {
@@ -1203,12 +1310,3 @@ a {
     display: none;
   }
 }
-.release-provenance {
-  max-width: 36rem;
-  margin: 0.8rem 0 0;
-  font-size: 0.72rem;
-  line-height: 1.6;
-  opacity: 0.72;
-}
-.release-provenance a { color: inherit; }
-.release-provenance code { overflow-wrap: anywhere; }

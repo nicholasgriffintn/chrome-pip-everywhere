@@ -21,11 +21,11 @@ Pop the best video in the active Chrome tab into an always-on-top Picture-in-Pic
 
 Open the extension options to change video selection or enable automatic PiP. Automatic PiP requires Chrome 134 or later, optional access to video pages and Chrome's per-site approval.
 
-## Install from source
+## Install
 
-1. Open `chrome://extensions`.
-2. Enable **Developer mode**.
-3. Select **Load unpacked** and choose this repository.
+[Install PiP Everywhere from the Chrome Web Store](https://chromewebstore.google.com/detail/pip-everywhere/abfdgaffebmgnoegdljcjjijnipmolkg).
+
+For local development, open `chrome://extensions`, enable **Developer mode**, then select **Load unpacked** and choose this repository.
 
 ## Privacy
 

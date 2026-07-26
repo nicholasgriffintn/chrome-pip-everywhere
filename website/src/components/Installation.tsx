@@ -1,10 +1,8 @@
 import { DownloadButton } from "./DownloadButton.tsx";
-import { ReleaseProvenance } from "./ReleaseProvenance.tsx";
 
 const steps = [
-  ["Download", "Get the extension archive and unzip it."],
-  ["Open Chrome", "Visit chrome://extensions and enable Developer mode."],
-  ["Load it", "Choose Load unpacked and select the extension folder."],
+  ["Add to Chrome", "Install PiP Everywhere from the Chrome Web Store."],
+  ["Start watching", "Play a video, then click the toolbar icon or press Alt–P."],
 ] as const;
 
 export function Installation() {
@@ -13,9 +11,8 @@ export function Installation() {
       <div className="installation-copy">
         <p className="section-number">04 / Ready when you are</p>
         <h2 id="install-heading">Put any video<br />in its place.</h2>
-        <p>Download the ZIP and install it locally. Then play a video and click the icon.</p>
+        <p>Install it from the Chrome Web Store, play a video and click the icon.</p>
         <DownloadButton />
-        <ReleaseProvenance />
       </div>
       <ol className="install-steps">
         {steps.map(([title, copy], index) => (

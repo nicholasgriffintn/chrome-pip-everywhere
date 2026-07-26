@@ -3,9 +3,10 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const components = new URL("../src/components/", import.meta.url);
-const [app, featureGrid, header, installation, productPreview, styles] =
+const [app, downloadButton, featureGrid, header, installation, productPreview, styles] =
   await Promise.all([
     readFile(new URL("../src/App.tsx", import.meta.url), "utf8"),
+    readFile(new URL("DownloadButton.tsx", components), "utf8"),
     readFile(new URL("FeatureGrid.tsx", components), "utf8"),
     readFile(new URL("SiteHeader.tsx", components), "utf8"),
     readFile(new URL("Installation.tsx", components), "utf8"),
@@ -18,6 +19,28 @@ test("the product page exposes its install and privacy destinations", () => {
   assert.match(header, /href="#install"/);
   assert.match(installation, /id="install"/);
   assert.match(app, /<PrivacyStatement \/>/);
+});
+
+test("the primary install action uses the Chrome Web Store with a ZIP fallback", () => {
+  assert.match(
+    downloadButton,
+    /https:\/\/chromewebstore[.]google[.]com\/detail\/pip-everywhere\/abfdgaffebmgnoegdljcjjijnipmolkg/,
+  );
+  assert.match(downloadButton, /<details className="download-menu">/);
+  assert.match(downloadButton, /href="\/pip-everywhere[.]zip" download/);
+});
+
+test("the install section keeps the store flow concise", () => {
+  assert.match(installation, /Install it from the Chrome Web Store/);
+  assert.match(installation, /Start watching/);
+  assert.doesNotMatch(installation, /Developer mode|ReleaseProvenance/);
+});
+
+test("install step numbers remain legible", () => {
+  assert.match(
+    styles,
+    /[.]install-steps li > span\s*\{[^}]*font-size:\s*14px[^}]*font-weight:\s*500/s,
+  );
 });
 
 test("shortcut copy works across supported desktop platforms", () => {
@@ -33,5 +56,6 @@ test("the decorative product illustration stays out of the accessibility tree", 
 
 test("interactive elements have a visible keyboard focus treatment", () => {
   assert.match(styles, /[.]download-button:focus-visible/);
+  assert.match(styles, /[.]download-menu summary:focus-visible/);
   assert.match(styles, /outline:\s*3px solid var\(--red-bright\)/);
 });
