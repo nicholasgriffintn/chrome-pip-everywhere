@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "PiP Everywhere",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Pop the best video in the current tab into an always-on-top Picture-in-Picture window.",
   "minimum_chrome_version": "120",
   "permissions": [

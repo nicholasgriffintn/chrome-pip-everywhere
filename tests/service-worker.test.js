@@ -98,6 +98,17 @@ test("only the strongest frame receives the Picture-in-Picture request", async (
   ]);
 });
 
+test("frame selection avoids sorting every inspected frame", () => {
+  const source = readFileSync(new URL("../service-worker.js", `file://${__filename}`), "utf8");
+  const selection = source.slice(
+    source.indexOf("function selectWinningFrame"),
+    source.indexOf("async function handleExecution")
+  );
+
+  assert.match(selection, /for [(]const entry of results[)]/);
+  assert.doesNotMatch(selection, /[.]sort[(]/);
+});
+
 test("stale error timers cannot clear later Picture-in-Picture feedback", async () => {
   const worker = createWorkerHarness([
     [{ result: { status: "error", message: "First attempt failed" } }],

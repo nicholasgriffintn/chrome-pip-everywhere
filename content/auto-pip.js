@@ -60,6 +60,7 @@
       configure({ enabled: stored?.autoPictureInPicture === true, settings: stored });
     } catch {
       enabled = false;
+      updateActionHandler();
     }
   }
 

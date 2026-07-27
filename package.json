@@ -1,6 +1,6 @@
 {
   "name": "pip-everywhere-chrome-extension",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
     "check": "node --check service-worker.js && node --check options.js && node --check lib/settings.js && node --check lib/shortcuts.js && node --check lib/auto-pip.js && node --check lib/action-feedback.js && node --check lib/action-executor.js && node --check content/auto-pip.js",

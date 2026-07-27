@@ -193,6 +193,43 @@ test("the page adapter enters Picture-in-Picture only while enabled", async () =
   assert.equal(executionCount, 1);
 });
 
+test("a settings load failure removes the media action handler", async () => {
+  const source = readFileSync(
+    new URL("../content/auto-pip.js", `file://${__filename}`),
+    "utf8"
+  );
+  let actionHandler = "unset";
+  const context = vm.createContext({
+    document: { pictureInPictureElement: null },
+    navigator: {
+      mediaSession: {
+        setActionHandler(_action, handler) {
+          actionHandler = handler;
+        }
+      }
+    },
+    PipEverywhereActionExecutor: {
+      async execute() {
+        return { status: "no-video" };
+      }
+    },
+    chrome: {
+      runtime: {
+        id: "test-extension",
+        onMessage: { addListener() {} },
+        async sendMessage() {
+          throw new Error("Extension context invalidated");
+        }
+      }
+    }
+  });
+
+  vm.runInContext(source, context);
+  assert.equal(typeof actionHandler, "function");
+  await settle();
+  assert.equal(actionHandler, null);
+});
+
 async function settle() {
   await new Promise((resolve) => setImmediate(resolve));
   await new Promise((resolve) => setImmediate(resolve));

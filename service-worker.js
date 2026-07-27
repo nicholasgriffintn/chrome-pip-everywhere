@@ -116,10 +116,7 @@ async function inspectFramesAndExecute(tabId, inspection, settings, generation) 
   try {
     const results = await inspection;
     if (!feedback.isCurrent(tabId, generation)) return;
-    const activeFrame = results.find((entry) => entry.result?.status === "active");
-    const winningFrame = activeFrame ?? results
-      .filter((entry) => entry.result?.status === "candidate")
-      .sort((left, right) => right.result.score - left.result.score)[0];
+    const winningFrame = selectWinningFrame(results);
 
     if (!winningFrame) {
       await feedback.showError(
@@ -142,6 +139,21 @@ async function inspectFramesAndExecute(tabId, inspection, settings, generation) 
   } catch (error) {
     await feedback.showError(tabId, readableError(error), generation);
   }
+}
+
+function selectWinningFrame(results) {
+  let bestCandidate;
+  for (const entry of results) {
+    if (entry.result?.status === "active") return entry;
+    if (entry.result?.status !== "candidate") continue;
+    if (
+      !bestCandidate
+      || Number(entry.result.score) > Number(bestCandidate.result.score)
+    ) {
+      bestCandidate = entry;
+    }
+  }
+  return bestCandidate;
 }
 
 async function handleExecution(tabId, execution, settings, generation) {

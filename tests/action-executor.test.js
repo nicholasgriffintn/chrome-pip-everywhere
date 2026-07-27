@@ -73,6 +73,20 @@ test("opens the strongest playing video", async () => {
   assert.equal(requested, "programme");
 });
 
+test("selects the strongest video without sorting all candidates", () => {
+  const source = require("node:fs").readFileSync(
+    require("node:path").join(__dirname, "..", "lib", "action-executor.js"),
+    "utf8"
+  );
+  const selection = source.slice(
+    source.indexOf("function findBestVideo()"),
+    source.indexOf("function inspectAction()")
+  );
+
+  assert.match(selection, /for [(]const video of collectVideos[(][)][)]/);
+  assert.doesNotMatch(selection, /[.]sort[(]/);
+});
+
 test("inspection scores a frame without requesting Picture-in-Picture", () => {
   let requested = false;
   installPage([createVideo({
